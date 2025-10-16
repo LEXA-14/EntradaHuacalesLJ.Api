@@ -45,8 +45,38 @@ public class EntradaHuacalesController(EntradaHuacalesServices entradaHuacalesSe
 
     // PUT api/<EntradaHuacalesController>/5
     [HttpPut("{id}")]
-    public void Put(int id, [FromBody] string value)
+    public async Task Put(int id, [FromBody] EntradaHuacalesDto entradaHuacales)
     {
+
+        var existente = await entradaHuacalesServices.Buscar(id);
+
+        if (existente == null)
+        {
+            var nuevo = new EntradaHuacales
+            {
+                IdEntrada = id,
+                Fecha = DateTime.Now,
+                NombreCliente = entradaHuacales.NombreCliente,
+                entradaHuacalesDetalle = entradaHuacales.Huacales.Select(h => new EntradaHuacalesDetalle
+                {
+                    IdTipo = h.IdTipo,
+                    Cantidad = h.Cantidad,
+                    Precio = h.Precio,
+
+                }).ToArray()
+            };
+            await entradaHuacalesServices.Guardar(nuevo);
+        }
+
+        existente.NombreCliente = entradaHuacales.NombreCliente;
+        existente.entradaHuacalesDetalle = entradaHuacales.Huacales.Select(h => new EntradaHuacalesDetalle
+        {
+            IdTipo = h.IdTipo,
+            Cantidad = h.Cantidad,
+            Precio = h.Precio,
+        }).ToArray();
+
+        await entradaHuacalesServices.Guardar(existente);
     }
 
     // DELETE api/<EntradaHuacalesController>/5
