@@ -81,7 +81,15 @@ public class EntradaHuacalesController(EntradaHuacalesServices entradaHuacalesSe
 
     // DELETE api/<EntradaHuacalesController>/5
     [HttpDelete("{id}")]
-    public void Delete(int id)
+    public async Task<string> Delete(int id)
     {
+        var eliminado=await entradaHuacalesServices.Eliminar(id);
+
+        if (eliminado)
+            return "Entrada eliminada correctamente.";
+        else
+            return "No se encontró la entrada especificada.";
+
+
     }
 }
