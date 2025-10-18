@@ -1,6 +1,6 @@
 ﻿namespace GestionHuacales.Api.DTO;
 
-public class TiposHuacales
+public class TipoHuacalesDto
 {
     public string Descripcion { get; set; }
 }

@@ -54,7 +54,7 @@ public class TipoHuacalesServices(IDbContextFactory<Contexto> DbFactory)
         return await contexto.TiposHuacales.Where(t => t.IdTipo == id).ExecuteDeleteAsync()>0;
     }
 
-    public async Task<List<TiposHuacales>> GetLista(Expression<Func<TiposHuacales, bool>> criterio)
+    public async Task<List<TiposHuacales>> Lista(Expression<Func<TiposHuacales, bool>> criterio)
     {
         await using var contexto = await DbFactory.CreateDbContextAsync();
         return await contexto.TiposHuacales.Where(criterio).ToListAsync();
