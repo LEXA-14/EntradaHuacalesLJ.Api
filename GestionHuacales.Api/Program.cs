@@ -21,12 +21,18 @@ builder.Services.AddScoped<TipoHuacalesServices>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-    app.MapOpenApi();
-}
+//if (app.Environment.IsDevelopment())
+//{
+//app.UseSwagger();
+// app.UseSwaggerUI();
+
+//}
+app.UseSwagger();
+app.UseSwaggerUI();
+app.MapOpenApi();
+
+
+app.UseRouting();
 
 app.UseHttpsRedirection();
 

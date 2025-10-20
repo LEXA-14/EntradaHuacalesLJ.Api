@@ -28,9 +28,17 @@ public class TiposHuacalesDtoController(TipoHuacalesServices tipoHuacalesService
 
     // GET api/<TiposHuacales>/5
     [HttpGet("{id}")]
-    public string Get(int id)
+    public async Task<TipoHuacalesDto?> Get(int id)
     {
-        return "value";
+        var tipo = await tipoHuacalesServices.Buscar(id);
+
+        if (tipo == null) return null;
+
+        return new TipoHuacalesDto
+        {
+            Descripcion = tipo.Descripcion
+
+        };
     }
 
     // POST api/<TiposHuacales>

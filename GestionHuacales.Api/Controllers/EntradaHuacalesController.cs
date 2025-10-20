@@ -20,27 +20,47 @@ public class EntradaHuacalesController(EntradaHuacalesServices entradaHuacalesSe
 
     // GET api/<EntradaHuacalesController>/5
     [HttpGet("{id}")]
-    public string Get(int id)
+    public async Task<EntradaHuacalesDto?> Get(int id)
     {
-        return "value";
+        var entrada = await entradaHuacalesServices.Buscar(id);
+
+        if (entrada == null) return null;
+
+        return new EntradaHuacalesDto
+        {
+            NombreCliente = entrada.NombreCliente,
+            Huacales = entrada.entradaHuacalesDetalle.Select(e=>new EntradaHuacalesDetalleDto
+            {
+                IdTipo=e.IdTipo,
+                Cantidad=e.Cantidad,
+                Precio = e.Precio,
+            }).ToArray()
+        };
     }
 
     // POST api/<EntradaHuacalesController>
     [HttpPost]
     public async Task Post([FromBody] EntradaHuacalesDto entradaHuacales)
     {
-        var huacales  = new EntradaHuacales
+        try
         {
-            Fecha = DateTime.Now,
-            NombreCliente = entradaHuacales.NombreCliente,
-            entradaHuacalesDetalle = entradaHuacales.Huacales.Select(h => new EntradaHuacalesDetalle
+            var huacales = new EntradaHuacales
             {
-                IdTipo = h.IdTipo,
-                Cantidad = h.Cantidad,
-                Precio = h.Precio,
-            }).ToArray()
-        };
-       await entradaHuacalesServices.Guardar(huacales);
+                Fecha = DateTime.Now,
+                NombreCliente = entradaHuacales.NombreCliente,
+                entradaHuacalesDetalle = entradaHuacales.Huacales.Select(h => new EntradaHuacalesDetalle
+                {
+                    IdTipo = h.IdTipo,
+                    Cantidad = h.Cantidad,
+                    Precio = h.Precio,
+                }).ToArray()
+            };
+            await entradaHuacalesServices.Guardar(huacales);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error guardando EntradaHuacales: " + ex.Message, ex);
+        }
     }
 
     // PUT api/<EntradaHuacalesController>/5
@@ -66,6 +86,7 @@ public class EntradaHuacalesController(EntradaHuacalesServices entradaHuacalesSe
                 }).ToArray()
             };
             await entradaHuacalesServices.Guardar(nuevo);
+            return;
         }
 
         existente.NombreCliente = entradaHuacales.NombreCliente;
