@@ -7,9 +7,15 @@ using GestionHuacales.Api.DTO;
 
 namespace GestionHuacales.Api.Services;
 
-
-public class EntradaHuacalesServices(IDbContextFactory<Contexto> DbFactory)
+public class EntradaHuacalesServices(
+    IDbContextFactory<Contexto> DbFactory,
+    TipoHuacalesServices tiposHuacalesServices)
 {
+    private readonly TipoHuacalesServices tiposHuacalesServices = tiposHuacalesServices;
+
+//    public class EntradaHuacalesServices(IDbContextFactory<Contexto> DbFactory)
+//{
+   
 
     public async Task<bool> Guardar(EntradaHuacales entradaHuacales)
     {
@@ -33,16 +39,19 @@ public class EntradaHuacalesServices(IDbContextFactory<Contexto> DbFactory)
     {
         await using var contexto = await DbFactory.CreateDbContextAsync();
         contexto.EntradaHuacales.Add(entradaHuacales);
+
+        await AfectarEntradasHuacales(
+               entradaHuacales.entradaHuacalesDetalle.ToArray(),
+               tipoOperacion:TipoOperacion.Suma
+           );
         return await contexto.SaveChangesAsync() > 0;
     }
 
-    private async Task<bool> Modificar(EntradaHuacales entradaHuacales)
+    public async Task<bool> Modificar(EntradaHuacales entradaHuacales)
     {
         await using var contexto = await DbFactory.CreateDbContextAsync();
-
         var entradaAnterior = await contexto.EntradaHuacales
             .Include(e => e.entradaHuacalesDetalle)
-            .AsNoTracking()
             .FirstOrDefaultAsync(e => e.IdEntrada == entradaHuacales.IdEntrada);
 
         if (entradaAnterior == null)
@@ -50,14 +59,51 @@ public class EntradaHuacalesServices(IDbContextFactory<Contexto> DbFactory)
             return false;
         }
 
-        await AfectarEntradasHuacales(detalle: [.. entradaAnterior.entradaHuacalesDetalle],
-                                      TipoOperacion.Resta);
+      
+        await AfectarEntradasHuacales(
+            entradaAnterior.entradaHuacalesDetalle.ToArray(),
+            TipoOperacion.Resta
+        );
 
-        await AfectarEntradasHuacales([.. entradaHuacales.entradaHuacalesDetalle], TipoOperacion.Suma);
+      
+        await AfectarEntradasHuacales(
+            entradaHuacales.entradaHuacalesDetalle.ToArray(),
+            TipoOperacion.Suma
+        );
 
-        contexto.EntradaHuacales.Update(entradaHuacales);
+     
+        contexto.EntradaHuacalesDetalles.RemoveRange(entradaAnterior.entradaHuacalesDetalle);
+
+   
+        entradaAnterior.entradaHuacalesDetalle = entradaHuacales.entradaHuacalesDetalle;
+        entradaAnterior.NombreCliente = entradaHuacales.NombreCliente;
+        entradaAnterior.Fecha = entradaHuacales.Fecha;
+
         return await contexto.SaveChangesAsync() > 0;
     }
+
+    //private async Task<bool> Modificar(EntradaHuacales entradaHuacales)
+    //{
+    //    await using var contexto = await DbFactory.CreateDbContextAsync();
+
+    //    var entradaAnterior = await contexto.EntradaHuacales
+    //        .Include(e => e.entradaHuacalesDetalle)
+    //        .AsNoTracking()
+    //        .FirstOrDefaultAsync(e => e.IdEntrada == entradaHuacales.IdEntrada);
+
+    //    if (entradaAnterior == null)
+    //    {
+    //        return false;
+    //    }
+
+    //    await AfectarEntradasHuacales(detalle: [.. entradaAnterior.entradaHuacalesDetalle],
+    //                                  TipoOperacion.Resta);
+
+    //    await AfectarEntradasHuacales([.. entradaHuacales.entradaHuacalesDetalle], TipoOperacion.Suma);
+
+    //    contexto.EntradaHuacales.Update(entradaHuacales);
+    //    return await contexto.SaveChangesAsync() > 0;
+    //}
 
     public async Task<EntradaHuacales?> Buscar(int idEntrada)
     {
@@ -97,7 +143,14 @@ public class EntradaHuacalesServices(IDbContextFactory<Contexto> DbFactory)
             .Where(criterio)
             .Select(h => new EntradaHuacalesDto
             {
-                NombreCliente = h.NombreCliente
+                NombreCliente = h.NombreCliente,
+                Huacales = h.entradaHuacalesDetalle.Select(d => new EntradaHuacalesDetalleDto
+                {
+                    IdTipo = d.IdTipo,
+                    Cantidad = d.Cantidad,
+                    Precio = d.Precio
+
+                }).ToArray()
             })
             .ToArrayAsync();
     }

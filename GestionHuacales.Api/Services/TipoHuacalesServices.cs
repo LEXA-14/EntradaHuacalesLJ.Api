@@ -1,4 +1,5 @@
 ﻿using GestionHuacales.Api.DAL;
+using GestionHuacales.Api.DTO;
 using GestionHuacales.Api.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -40,10 +41,32 @@ public class TipoHuacalesServices(IDbContextFactory<Contexto> DbFactory)
         return await contexto.SaveChangesAsync() > 0;
     }
 
-    public async Task<TiposHuacales?>Buscar(int id)
+    public async Task<TiposHuacales?> Buscar(int id)
     {
-        using var contexto=await DbFactory.CreateDbContextAsync();
+        using var contexto = await DbFactory.CreateDbContextAsync();
         return await contexto.TiposHuacales.FirstOrDefaultAsync(t => t.IdTipo == id);
+    }
+
+    public async Task AfectarExistencia(EntradaHuacalesDetalle[] detalles, TipoOperacion operacion)
+    {
+        await using var contexto = await DbFactory.CreateDbContextAsync();
+
+        foreach (var detalle in detalles)
+        {
+            var tipo = await contexto.TiposHuacales
+                .FirstOrDefaultAsync(t => t.IdTipo == detalle.IdTipo);
+
+            if (operacion == TipoOperacion.Suma)
+            {
+                tipo.Existencia += detalle.Cantidad;
+            }
+            else if (operacion == TipoOperacion.Resta)
+            {
+                tipo.Existencia -= detalle.Cantidad;
+            }
+        }
+
+        await contexto.SaveChangesAsync();
     }
     //eliminar 
     //Listar
@@ -54,9 +77,22 @@ public class TipoHuacalesServices(IDbContextFactory<Contexto> DbFactory)
         return await contexto.TiposHuacales.Where(t => t.IdTipo == id).ExecuteDeleteAsync()>0;
     }
 
-    public async Task<List<TiposHuacales>> Lista(Expression<Func<TiposHuacales, bool>> criterio)
+    public async Task<TipoHuacalesDto[]> Lista(Expression<Func<TiposHuacales, bool>> criterio)
     {
         await using var contexto = await DbFactory.CreateDbContextAsync();
-        return await contexto.TiposHuacales.Where(criterio).ToListAsync();
+        return await contexto.TiposHuacales.Where(criterio).Select(h => new TipoHuacalesDto
+        {
+            TipoId=h.IdTipo,
+            Descripcion = h.Descripcion,
+            Existencia = h.Existencia
+        }).ToArrayAsync();
+           
+    }
+
+
+    public enum TipoOperacion
+    {
+        Suma=1,
+        Resta=2
     }
 }

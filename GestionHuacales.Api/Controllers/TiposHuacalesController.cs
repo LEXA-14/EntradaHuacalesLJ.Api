@@ -12,17 +12,12 @@ public class TiposHuacalesDtoController(TipoHuacalesServices tipoHuacalesService
 {
     // GET: api/<TiposHuacales>
     [HttpGet]
-    public async Task<List<TipoHuacalesDto>> Get()
+    public async Task<TipoHuacalesDto[]> Get()
     {
 
-        var lista = await tipoHuacalesServices.Lista(t => true);
+        return await tipoHuacalesServices.Lista(t => true);
 
-        return lista.Select(t => new TipoHuacalesDto
-        {
-            Descripcion = t.Descripcion,
-            //Existencia = t.Existencia,
-        }).ToList();
-
+      
 
     }
 
@@ -36,7 +31,8 @@ public class TiposHuacalesDtoController(TipoHuacalesServices tipoHuacalesService
 
         return new TipoHuacalesDto
         {
-            Descripcion = tipo.Descripcion
+            Descripcion = tipo.Descripcion,
+            Existencia= tipo.Existencia,
 
         };
     }
@@ -48,7 +44,7 @@ public class TiposHuacalesDtoController(TipoHuacalesServices tipoHuacalesService
         var tipo = new TiposHuacales
         {
             Descripcion = tiposHuacales.Descripcion,
-            //Existencia = tiposHuacales.Existencia
+            Existencia = tiposHuacales.Existencia
         };
 
         await tipoHuacalesServices.Guardar(tipo);
@@ -70,7 +66,7 @@ public class TiposHuacalesDtoController(TipoHuacalesServices tipoHuacalesService
             {
                 IdTipo = id,
                 Descripcion = tiposHuacales.Descripcion,
-                //Existencia = tiposHuacales.Existencia,
+                Existencia = tiposHuacales.Existencia,
 
             };
             await tipoHuacalesServices.Guardar(nuevo);
@@ -80,7 +76,7 @@ public class TiposHuacalesDtoController(TipoHuacalesServices tipoHuacalesService
 
 
             existente.Descripcion = tiposHuacales.Descripcion;
-            //existente.Existencia = tiposHuacales.Existencia;
+            existente.Existencia = tiposHuacales.Existencia;
 
             await tipoHuacalesServices.Modificar(existente);
         }

@@ -56,6 +56,8 @@ public class EntradaHuacalesController(EntradaHuacalesServices entradaHuacalesSe
                 }).ToArray()
             };
             await entradaHuacalesServices.Guardar(huacales);
+
+            
         }
         catch (Exception ex)
         {
